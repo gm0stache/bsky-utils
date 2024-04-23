@@ -6,8 +6,10 @@ import (
 	"log"
 	"os"
 
+	comatproto "github.com/bluesky-social/indigo/api/atproto"
 	"github.com/bluesky-social/indigo/atproto/identity"
 	"github.com/bluesky-social/indigo/atproto/syntax"
+	"github.com/bluesky-social/indigo/xrpc"
 	"github.com/joho/godotenv"
 )
 
@@ -33,7 +35,7 @@ func main() {
 	fmt.Printf("handle: %q, PDS URL: %q", handle, atID.PDSEndpoint())
 
 	path := atID.DID.String() + ".car"
-	if err := downloadRepo(path, atID); err != nil {
+	if err := downloadRepo(ctx, path, atID); err != nil {
 		log.Fatal(err)
 	}
 
@@ -52,6 +54,13 @@ func getID(ctx context.Context, handle string) (*identity.Identity, error) {
 	return ident, nil
 }
 
-func downloadRepo(path string, id *identity.Identity) error {
-	return nil
+func downloadRepo(ctx context.Context, path string, id *identity.Identity) error {
+	client := xrpc.Client{
+		Host: id.PDSEndpoint(),
+	}
+	repoByts, err := comatproto.SyncGetRepo(ctx, &client, id.DID.String(), "")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, repoByts, 0666)
 }

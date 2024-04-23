@@ -10,6 +10,7 @@
 
 # Sensitive files
 .env
+*.car
 
 # Test binary, built with `go test -c`
 *.test
