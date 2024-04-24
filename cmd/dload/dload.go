@@ -6,10 +6,7 @@ import (
 	"log"
 	"os"
 
-	comatproto "github.com/bluesky-social/indigo/api/atproto"
-	"github.com/bluesky-social/indigo/atproto/identity"
-	"github.com/bluesky-social/indigo/atproto/syntax"
-	"github.com/bluesky-social/indigo/xrpc"
+	"github.com/gm0stache/bsky-utils/pkg/dload"
 	"github.com/joho/godotenv"
 )
 
@@ -28,39 +25,18 @@ func main() {
 	}
 
 	ctx := context.Background()
-	atID, err := getID(ctx, handle)
+	atID, err := dload.GetATID(ctx, handle)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("handle: %q, PDS URL: %q", handle, atID.PDSEndpoint())
+	fmt.Printf("handle: %q, PDS URL: %q\n", handle, atID.PDSEndpoint())
 
 	path := atID.DID.String() + ".car"
-	if err := downloadRepo(ctx, path, atID); err != nil {
+	if err := dload.DownloadRepo(ctx, path, atID); err != nil {
 		log.Fatal(err)
 	}
 
-}
-
-func getID(ctx context.Context, handle string) (*identity.Identity, error) {
-	atID, err := syntax.ParseAtIdentifier(handle)
-	if err != nil {
-		return nil, err
+	if err := dload.ConvertCarToDir(ctx, path, atID); err != nil {
+		log.Fatal(err)
 	}
-	idDir := identity.DefaultDirectory()
-	ident, err := idDir.Lookup(ctx, *atID)
-	if err != nil {
-		return nil, err
-	}
-	return ident, nil
-}
-
-func downloadRepo(ctx context.Context, path string, id *identity.Identity) error {
-	client := xrpc.Client{
-		Host: id.PDSEndpoint(),
-	}
-	repoByts, err := comatproto.SyncGetRepo(ctx, &client, id.DID.String(), "")
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(path, repoByts, 0666)
 }
