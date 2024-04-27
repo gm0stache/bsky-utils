@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	envBskyHandle string = "BSKY_HANDLE"
+	envBskyHandle  string = "BSKY_HANDLE"
+	envCarFilePath string = "CAR_FILE"
 )
 
 func main() {
@@ -24,6 +25,11 @@ func main() {
 		log.Fatalf("env var %q must be set", envBskyHandle)
 	}
 
+	carFilePath := os.Getenv(envCarFilePath)
+	if handle == "" {
+		log.Fatalf("env var %q must be set", envBskyHandle)
+	}
+
 	ctx := context.Background()
 	atID, err := dload.GetATID(ctx, handle)
 	if err != nil {
@@ -31,8 +37,7 @@ func main() {
 	}
 	fmt.Printf("handle: %q, PDS URL: %q\n", handle, atID.PDSEndpoint())
 
-	path := atID.DID.String() + ".car"
-	if err := dload.DownloadRepo(ctx, path, atID); err != nil {
+	if err := dload.ConvertCarToDir(ctx, carFilePath, atID); err != nil {
 		log.Fatal(err)
 	}
 
