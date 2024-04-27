@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	atID         string = "did:plc:er3fe6bjsuhwchyfdwyygxud"
+	atID         string = "did:plc:5molcdxko5rtwkjivyiviss6"
 	carExtension string = "car"
 )
 
@@ -21,10 +21,11 @@ func TestCarToDir(t *testing.T) {
 	atID := &identity.Identity{
 		DID: syntax.DID(atID),
 	}
-	carFilePath := fmt.Sprintf("../../%s.%s", atID.DID.String(), carExtension)
+
+	carFilePath := fmt.Sprintf("../../testdata/%s.%s", atID.DID.String(), carExtension)
 
 	// act
-	err := dload.ConvertCarToDir(context.TODO(), carFilePath, atID)
+	err := dload.ConvertCarToDir(context.TODO(), carFilePath, atID) // todo: fix tests. there seems to be an issue with the lex-to-record-type conversion. init lexutil?
 
 	// assert
 	require.NoError(t, err)
